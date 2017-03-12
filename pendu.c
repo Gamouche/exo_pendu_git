@@ -1,29 +1,59 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "pendu.h"
 
-
+/* global variables */
 static int g_choice_system = 0;
 
-
+/* implementation */
 static void 	my_systemclear(void)
 {
-	if (g_choice_system == CHOIX_WINDOWS)
-		system("cls");
+	char cmd[10] = {0};
 
-	else if (g_choice_system == CHOIX_MACLINUX)
-		system("clear");
+	if (cmd[0] == '\0')
+	{
+		if (g_choice_system == CHOICE_WINDOWS)
+			strcpy(cmd, "cls");
+
+		else if (g_choice_system == CHOICE_MACLINUX)
+			strcpy(cmd, "clear");
+	}
+
+	if ( system(cmd) == -1 )
+		stop_prog("Error system() returns (-1) in function `my_systemclear`\n");
 }
 
 
 static void 	clear_stdin(void)
-{
+{     
 	int c = 0;
 
 	while (c != '\n' && c != EOF)
 		c = getchar();
-}	
+}
+
+
+static char * 	word_from_dico(void)
+{
+	FILE *f_dico = fopen("dico.txt", "r");
+
+	if (f_dico == NULL)
+		stop_prog("Error fopen() returns (NULL) in function `word_from_dico`\n");
+
+	fclose(f_dico);
+}
+
+
+static void		stop_prog(char * str)
+{
+	fprintf(stderr, "The program has encountered an error and will stop.\nError report :\n");
+	fprintf(stderr, "Error detected : %s", str);
+	perror("perror() report");
+	fprintf(stderr, "\nEXIT PROGRAM\n");
+	exit(EXIT_FAILURE);
+}
 
 
 static void 	welcome(void)
@@ -40,15 +70,17 @@ static void 	welcome(void)
 		ret = scanf("%d", &g_choice_system);
 		clear_stdin();
 	}
+
+	my_systemclear();
 }
 
-
+/* main function */
 int				main(void)
 {
-
-
 	welcome();
-	my_systemclear();
+	word_from_dico();
+
+
 
 
 
