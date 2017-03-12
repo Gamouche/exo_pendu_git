@@ -10,12 +10,12 @@
 
 /* implementation */
 
-static void * 	my_malloc(const size_t size)
+static void * 	my_calloc(const size_t nb, const size_t size)
 {	
-	void *adr = malloc(size);
+	void *adr = calloc(nb, size);
 
 	if (adr == NULL)
-		stop_prog("Error malloc() returned (NULL) in function `my_malloc`\n");
+		stop_prog("Error calloc() returned (NULL) in function `my_calloc`\n");
 
 	return (adr);
 }
@@ -75,7 +75,7 @@ static char * 	random_word(FILE * fileptr, const int nb_lgn)
 	int pick_line = 1;
 	int index = 0;
 
-	word = my_malloc(SIZE_WORD);
+	word = my_calloc(SIZE_WORD, sizeof(char));
 	random_number = random_number_interval(1, nb_lgn);
 
 	while (pick_line < random_number)
@@ -164,7 +164,7 @@ static int		choice_game_mode(void)
 
 static char * 	choose_secretword(void)
 {
-	char *word = my_malloc(SIZE_WORD);
+	char *word = my_calloc(SIZE_WORD, sizeof(char));
 	char *ret = NULL;
 	bool again = true;
 
