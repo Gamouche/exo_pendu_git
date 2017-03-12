@@ -218,27 +218,118 @@ static bool 	valid_word(char *word)
 }
 
 
+static char 	get_letter(void)
+{
+	char c = 0;
+
+	printf("Entrez une lettre > ");
+	c = getchar();
+	clear_stdin();
+	c = toupper(c);
+
+	return (c);
+}
+
+
+static void 	init_hidden_word(char ** hidden_word, size_t length)
+{
+
+	*hidden_word = my_calloc(length + 1, sizeof(char));
+	memset(*hidden_word, '*', length);
+	(*hidden_word)[length] = '\0';
+}
+
+
+static void 	free_memory(char ** ptr1, char ** ptr2)
+{
+	free(*ptr1);
+	free(*ptr2);
+	*ptr1 = NULL;
+	*ptr2 = NULL;
+}
+
+
+static bool		search_letter_in_word(char letter, char * secret_word, char * hidden_word)
+{
+	bool good_letter = false;
+
+	for (int i = 0 ; secret_word[i] ; i++)
+	{
+		if (secret_word[i] == letter)
+		{
+			hidden_word[i] = letter;
+			good_letter = true;
+		}
+	}
+
+	if (good_letter == true)
+		puts("Bravo ! Une lettre de plus de trouvee !\n");
+	else
+		printf("La lettre %c n'est pas presente dans le mot secret !\n\n", letter);
+
+	return (good_letter);
+}
+
+
+static bool		heartofthegame(char * secret_word, char * hidden_word)
+{
+	char letter = 0;
+	int attempts = NB_ATTEMPTS;
+	size_t length = strlen(secret_word);
+
+
+	while ( strcmp(hidden_word, secret_word) != 0 && attempts > 0)
+	{
+		printf("Mot secret : %s (%zu lettres)\n", hidden_word, length);
+		letter = get_letter();
+
+		if ( search_letter_in_word(letter, secret_word, hidden_word) == false )
+			attempts--;
+
+		printf("Il vous reste %d essais.\n", attempts);
+	}
+
+	return ( (attempts > 0) ? WIN : LOOSE );
+}
+
+
 /* main function */
 int				main(void)
 {
 	char *secret_word = NULL;
+	char *hidden_word = NULL;
 
-	welcome();
-	
-	if ( choice_game_mode() == 1 )
-		secret_word = word_from_dico();
+	while (1)
+	{
+		welcome();
+		
+		if ( choice_game_mode() == 1 )
+			secret_word = word_from_dico();
+		else
+			secret_word = choose_secretword();
 
-	else
-		secret_word = choose_secretword();
+		init_hidden_word( &hidden_word, strlen(secret_word) );
 
-	printf("mdr = %s", secret_word);
+		/* CHEATING */ printf("SECRET WORD = %s\n", secret_word); /* CHEATING */
+		puts("\n\nA vous maintenant de trouver le mot mystere !\nAppuyez sur ENTREE pour commencer.");
+		clear_stdin();
 
+		if ( heartofthegame(secret_word, hidden_word) == WIN ) 
+		{
 
+		}
 
+		else
+		{
 
+		}
 
-	free(secret_word);
+		free_memory(&hidden_word, &secret_word);
 
+		// retry game ?
+		
+		break;
+	}
 
 	return (EXIT_SUCCESS);
 }
