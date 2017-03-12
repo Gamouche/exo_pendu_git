@@ -3,17 +3,12 @@
 #include <string.h>
 #include <time.h>
 #include <stdbool.h>
+#include <ctype.h>
 
 #include "pendu.h"
 
 
 /* implementation */
-static void 	my_systemclear(void)
-{
-	if ( system(CLEAR_SCREEN) == -1 )
-		stop_prog("Error system() returned (-1) in function `my_systemclear`\n");
-}
-
 
 static void * 	my_malloc(const size_t size)
 {	
@@ -80,7 +75,7 @@ static char * 	random_word(FILE * fileptr, const int nb_lgn)
 	int pick_line = 1;
 	int index = 0;
 
-	word = my_malloc( 30 * sizeof(char) );
+	word = my_malloc(SIZE_WORD);
 	random_number = random_number_interval(1, nb_lgn);
 
 	while (pick_line < random_number)
@@ -127,7 +122,7 @@ static char * 	word_from_dico(void)
 
 static void		stop_prog(const char * str)
 {
-	fprintf(stderr, "The program has encountered an error and will stop.\nError report :\n");
+	fprintf(stderr, "\n\nThe program has encountered an error and will stop.\nError report :\n");
 	fprintf(stderr, "Error detected : %s", str);
 	perror("perror() report");
 	fprintf(stderr, "\nEXIT PROGRAM\n");
@@ -137,29 +132,112 @@ static void		stop_prog(const char * str)
 
 static void 	welcome(void)
 {
-	printf("\n\nBienvenue dans le pendu !\n\n");
-	
+	puts("\n\nBienvenue dans le jeu du Pendu !\n\n"
+		   "Le but du jeu est de trouver un mot mystere avec un nombre d'essai limité ! "
+		   "Le joueur doit pour cela rentrer des lettres, en faisant jouer son sens de la déduction "
+		   "et sa culture de la langue francaise. "
+		   "Les lettres peuvent etre entrees en minuscule ou en majuscule, cela n'a pas d'importance.\n");
 
-	printf("Appuyez sur ENTREE pour continuer.\n");
+	puts("Appuyez sur ENTREE pour continuer.");
 	clear_stdin();
-	my_systemclear();
 }
+
+
+static int		choice_game_mode(void)
+{
+	int game_mode = 0;
+	int ret = 0;
+
+	while ( ret != 1 || (game_mode != 1 && game_mode != 2) )
+	{
+		puts("Si vous souhaitez jouer avec un mot au hasard, envoyez 1.\n"
+		 	 "Si vous souhaitez choisir le mot qui sera joue, envoyez 2.\n");
+		printf("Choix (1 ou 2) > ");
+
+		ret = scanf("%d", &game_mode);
+		clear_stdin();
+	}
+
+	return (game_mode);
+}
+
+
+static char * 	choose_secretword(void)
+{
+	char *word = my_malloc(SIZE_WORD);
+	char *ret = NULL;
+	bool again = true;
+
+	do
+	{
+		puts("\n\nA vous de choisir le mot secret qui sera a trouver !\n"
+			 "Pour etre valide, le mot doit etre compose exclusivement de lettres, 29 au maximum.");
+		printf("Entrez le mot > ");
+		fflush(stdout);
+		
+		if ( fgets(word, SIZE_WORD, stdin) == NULL )
+			stop_prog("Error fgets() returned (NULL) in function `choose_secretword`\n");
+
+		if ( (ret = strchr(word, '\n')) != NULL )
+			*ret = '\0';
+		else
+			clear_stdin();
+
+		if ( valid_word(word) == false )
+		{
+			printf("Le mot est invalide, veuillez recommencer.");
+			fflush(stdout);
+		}
+		else
+			again = false;
+	} 
+	while (again == true);
+
+	str_to_uppercase(word);
+
+	return (word);
+}
+
+
+static void 	str_to_uppercase(char *str)
+{
+	for (int i = 0 ; str[i] ; i++)
+		str[i] = toupper(str[i]);
+}
+
+
+static bool 	valid_word(char *word)
+{
+	for (int i = 0 ; word[i] ; i++)
+	{
+		if ( isalpha(word[i]) == 0)
+			return (false);
+	}
+
+	return (true);
+}
+
 
 /* main function */
 int				main(void)
 {
+	char *secret_word = NULL;
+
 	welcome();
 	
-	char * w = word_from_dico();
+	if ( choice_game_mode() == 1 )
+		secret_word = word_from_dico();
 
-	printf("w = %s\n", w);
+	else
+		secret_word = choose_secretword();
 
-	free(w);
-
-
-
+	printf("mdr = %s", secret_word);
 
 
+
+
+
+	free(secret_word);
 
 
 	return (EXIT_SUCCESS);
