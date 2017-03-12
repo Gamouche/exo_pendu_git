@@ -4,13 +4,16 @@
 	#ifdef __cplusplus
 		#error C++ compiler detected, please use a C compiler
 	#endif
+	/* - - - */
 
+	#ifdef CHOICE_MACLINUX
+		#define CLEAR_SCREEN "clear"
 
-	enum CHOIX_SYSTEM
-	{
-		CHOICE_WINDOWS = 1, CHOICE_MACLINUX = 2
-	};
+	#elif defined CHOICE_WINDOWS
+		#define CLEAR_SCREEN "cls"
 
+	#endif
+	/* - - - */
 
 
 	/* prototypes */
@@ -18,7 +21,11 @@
 	static void 	clear_stdin(void);
 	static void 	my_systemclear(void);
 	static char * 	word_from_dico(void);
-	static void		stop_prog(char * str);
+	static void		stop_prog(const char * str);
+	static int 		file_number_of_lines(FILE * fileptr);
+	static char * 	random_word(FILE * fileptr, const int nb_lgn);
+	static int 		random_number_interval(const int min, const int max);
+	static void * 	my_malloc(const size_t size);
 
 
 

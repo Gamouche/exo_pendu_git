@@ -1,28 +1,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+#include <stdbool.h>
 
 #include "pendu.h"
 
-/* global variables */
-static int g_choice_system = 0;
 
 /* implementation */
 static void 	my_systemclear(void)
 {
-	char cmd[10] = {0};
+	if ( system(CLEAR_SCREEN) == -1 )
+		stop_prog("Error system() returned (-1) in function `my_systemclear`\n");
+}
 
-	if (cmd[0] == '\0')
-	{
-		if (g_choice_system == CHOICE_WINDOWS)
-			strcpy(cmd, "cls");
 
-		else if (g_choice_system == CHOICE_MACLINUX)
-			strcpy(cmd, "clear");
-	}
+static void * 	my_malloc(const size_t size)
+{	
+	void *adr = malloc(size);
 
-	if ( system(cmd) == -1 )
-		stop_prog("Error system() returns (-1) in function `my_systemclear`\n");
+	if (adr == NULL)
+		stop_prog("Error malloc() returned (NULL) in function `my_malloc`\n");
+
+	return (adr);
 }
 
 
@@ -35,18 +35,97 @@ static void 	clear_stdin(void)
 }
 
 
-static char * 	word_from_dico(void)
+static int 		file_number_of_lines(FILE * fileptr)
 {
-	FILE *f_dico = fopen("dico.txt", "r");
+	int c = 0;
+	int nb_lgn = 0;
 
-	if (f_dico == NULL)
-		stop_prog("Error fopen() returns (NULL) in function `word_from_dico`\n");
+	while ( (c = fgetc(fileptr)) != EOF )
+	{
+		if (c == '\n')
+			nb_lgn++;
+	}
 
-	fclose(f_dico);
+	if (nb_lgn == 0)
+		stop_prog("Error fgetc() returned (EOF) on the first call in function `word_from_dico`\n");
+
+	rewind(fileptr);
+
+	return (nb_lgn);
 }
 
 
-static void		stop_prog(char * str)
+static int 		random_number_interval(const int min, const int max)
+{
+	static bool init_rand = false;
+	int random_number = 0;
+
+	if (init_rand == false)
+	{	
+		srand( time(NULL) );
+		init_rand = true;
+	}
+
+	random_number = rand() % (max - min + 1) + min;
+
+	return (random_number);
+}
+
+
+static char * 	random_word(FILE * fileptr, const int nb_lgn)
+{
+	char *word = NULL;
+	int random_number = 0;
+	int c = 0;
+	int pick_line = 1;
+	int index = 0;
+
+	word = my_malloc( 30 * sizeof(char) );
+	random_number = random_number_interval(1, nb_lgn);
+
+	while (pick_line < random_number)
+	{
+		if ( (c = fgetc(fileptr)) == EOF )
+			stop_prog("Error fgetc() returned (EOF) in function `random_word` (the file `dico.txt` has been modified\n");
+
+		if (c == '\n')
+			pick_line++;
+	}
+
+	while ( (c = fgetc(fileptr)) != '\n' )
+	{
+		word[index] = c;
+		index++;
+	}
+
+	rewind(fileptr);
+	
+	return (word);
+}
+
+
+static char * 	word_from_dico(void)
+{
+	FILE *f_dico = NULL;
+	int nb_lgn = 0;
+	char *word = NULL;
+
+	f_dico = fopen("dico.txt", "r");
+
+	if (f_dico == NULL)
+		stop_prog("Error fopen() returned (NULL) in function `word_from_dico`\n");
+
+	nb_lgn = file_number_of_lines(f_dico);
+
+	word = random_word(f_dico, nb_lgn);
+
+	fclose(f_dico);
+
+	return (word);
+}
+
+
+static void		stop_prog(const char * str)
 {
 	fprintf(stderr, "The program has encountered an error and will stop.\nError report :\n");
 	fprintf(stderr, "Error detected : %s", str);
@@ -58,19 +137,11 @@ static void		stop_prog(char * str)
 
 static void 	welcome(void)
 {
-	int ret = 0;
+	printf("\n\nBienvenue dans le pendu !\n\n");
+	
 
-	while ( (g_choice_system != 1 && g_choice_system != 2) || ret != 1 )
-	{
-		printf("\n\nBienvenue dans le pendu !\n\n"
-			   "Si vous etes sur Windows, envoyez 1.\n"
-			   "Si vous etes sur Mac ou Linux, envoyez 2.\n\n"
-			   "Reponse 1 ou 2 : > ");
-
-		ret = scanf("%d", &g_choice_system);
-		clear_stdin();
-	}
-
+	printf("Appuyez sur ENTREE pour continuer.\n");
+	clear_stdin();
 	my_systemclear();
 }
 
@@ -78,7 +149,13 @@ static void 	welcome(void)
 int				main(void)
 {
 	welcome();
-	word_from_dico();
+	
+	char * w = word_from_dico();
+
+	printf("w = %s\n", w);
+
+	free(w);
+
 
 
 
