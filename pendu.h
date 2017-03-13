@@ -23,14 +23,15 @@
 	static void * 	my_calloc(const size_t nb, const size_t size);
 	static int		choice_game_mode(void);
 	static char * 	choose_secretword(void);
-	static bool 	valid_word(char *word);
+	static bool 	valid_word(const char *word);
 	static void 	str_to_uppercase(char *str);
 	static char 	get_letter(void);
-	static void 	init_hidden_word(char ** hidden_word, size_t length);
+	static void 	init_hidden_word(char ** hidden_word, const size_t length);
 	static void 	free_memory(char ** ptr1, char ** ptr2);
-	static bool		search_letter_in_word(char letter, char * secret_word, char * hidden_word);
-	static bool		heartofthegame(char * secret_word, char * hidden_word);
-
-
+	static bool		search_letter_in_word(const char letter, const char * secret_word, char * hidden_word);
+	static bool		find_secret_word(const char * secret_word, char * hidden_word);
+	static void		draw_hanged_guy(void);
+	static void		draw_saved_guy(void);
+	static void 	retry_game(bool * const retry);
 
 #endif /* PENDU_H GUARD */

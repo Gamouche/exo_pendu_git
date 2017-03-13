@@ -206,7 +206,7 @@ static void 	str_to_uppercase(char *str)
 }
 
 
-static bool 	valid_word(char *word)
+static bool 	valid_word(const char *word)
 {
 	for (int i = 0 ; word[i] ; i++)
 	{
@@ -222,16 +222,21 @@ static char 	get_letter(void)
 {
 	char c = 0;
 
-	printf("Entrez une lettre > ");
-	c = getchar();
-	clear_stdin();
+	while ( isalpha(c) == 0 )
+	{
+		printf("Entrez une lettre > ");
+		fflush(stdout);
+		c = getchar();
+		clear_stdin();
+	}
+
 	c = toupper(c);
 
 	return (c);
 }
 
 
-static void 	init_hidden_word(char ** hidden_word, size_t length)
+static void 	init_hidden_word(char ** hidden_word, const size_t length)
 {
 
 	*hidden_word = my_calloc(length + 1, sizeof(char));
@@ -249,7 +254,7 @@ static void 	free_memory(char ** ptr1, char ** ptr2)
 }
 
 
-static bool		search_letter_in_word(char letter, char * secret_word, char * hidden_word)
+static bool		search_letter_in_word(const char letter, const char * secret_word, char * hidden_word)
 {
 	bool good_letter = false;
 
@@ -271,25 +276,68 @@ static bool		search_letter_in_word(char letter, char * secret_word, char * hidde
 }
 
 
-static bool		heartofthegame(char * secret_word, char * hidden_word)
+static bool		find_secret_word(const char * secret_word, char * hidden_word)
 {
 	char letter = 0;
 	int attempts = NB_ATTEMPTS;
 	size_t length = strlen(secret_word);
 
+	puts("\n\nA vous maintenant de trouver le mot mystere !\nAppuyez sur ENTREE pour commencer.");
+	puts("- - - - - - - - - - - - - - - - - - - - - -");
+	clear_stdin();
 
 	while ( strcmp(hidden_word, secret_word) != 0 && attempts > 0)
 	{
 		printf("Mot secret : %s (%zu lettres)\n", hidden_word, length);
+		printf("Il vous reste %d essais.\n", attempts);
 		letter = get_letter();
 
 		if ( search_letter_in_word(letter, secret_word, hidden_word) == false )
 			attempts--;
-
-		printf("Il vous reste %d essais.\n", attempts);
 	}
 
 	return ( (attempts > 0) ? WIN : LOOSE );
+}
+
+
+static void		draw_hanged_guy(void)
+{
+	puts("    ___          \n"
+		 "   |/  |         \n"
+		 "   |   |   HANGED\n"
+	 	 "   |  \\o/       \n"
+		 "   |   |         \n"
+		 "   |  / \\       \n"
+		 "__/|___          \n");
+}
+
+
+static void		draw_saved_guy(void)
+{
+	puts("    ___            \n"
+		 "   |/  |           \n"
+		 "   |   |      SAVED\n"
+		 "   |   |  \\o/     \n"
+		 "   |   |   |	     \n"
+		 "   | 	  / \\	     \n"
+		 "__/|___            \n");
+}
+
+
+static void 	retry_game(bool * const retry)
+{
+	int ret = 0;
+	char c = 0;
+
+	while (ret != 1 || (c != 'o' && c != 'O' && c != 'n' && c != 'N') )
+	{	
+		puts("Voulez-vous refaire une partie ? Si oui envoyez 'o' ou 'O' sinon 'n' ou 'N'");
+		printf("Choix [O/N] > ");
+		ret = scanf("%c", &c);
+		clear_stdin();
+	}
+
+	*retry = (c == 'o' || c == 'O') ? true : false;
 }
 
 
@@ -298,8 +346,9 @@ int				main(void)
 {
 	char *secret_word = NULL;
 	char *hidden_word = NULL;
+	bool retry = true;
 
-	while (1)
+	while (retry)
 	{
 		welcome();
 		
@@ -310,25 +359,20 @@ int				main(void)
 
 		init_hidden_word( &hidden_word, strlen(secret_word) );
 
-		/* CHEATING */ printf("SECRET WORD = %s\n", secret_word); /* CHEATING */
-		puts("\n\nA vous maintenant de trouver le mot mystere !\nAppuyez sur ENTREE pour commencer.");
-		clear_stdin();
-
-		if ( heartofthegame(secret_word, hidden_word) == WIN ) 
+		if ( find_secret_word(secret_word, hidden_word) == WIN )
 		{
-
+			printf("\nBravo vous avez gagne ! Le mot secret etait bien `%s`\n", hidden_word);
+			draw_saved_guy();
 		}
-
 		else
 		{
-
+			printf("\nDommage c'est perdu :( Le mot secret etait `%s`\n", secret_word);
+			draw_hanged_guy();
 		}
 
 		free_memory(&hidden_word, &secret_word);
 
-		// retry game ?
-		
-		break;
+		retry_game(&retry);
 	}
 
 	return (EXIT_SUCCESS);
