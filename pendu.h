@@ -9,7 +9,17 @@
 	#define SIZE_WORD 30
 	#define NB_ATTEMPTS 8
 
-	enum { LOOSE, WIN };
+	enum
+	{ 
+		LOOSE,
+		WIN
+	};
+
+	enum e_letter_status
+	{ 
+		ALREADY_PLAYED,
+		NEW_LETTER_PLAYED
+	};
 
 
 	/* prototypes */
@@ -33,5 +43,6 @@
 	static void		draw_hanged_guy(void);
 	static void		draw_saved_guy(void);
 	static void 	retry_game(bool * const retry);
-
+	static enum e_letter_status 	letters_already_played(char * letters_played, char letter);
+	
 #endif /* PENDU_H GUARD */

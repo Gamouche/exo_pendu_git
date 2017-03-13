@@ -105,9 +105,7 @@ static char * 	word_from_dico(void)
 	int nb_lgn = 0;
 	char *word = NULL;
 
-	f_dico = fopen("dico.txt", "r");
-
-	if (f_dico == NULL)
+	if ( (f_dico = fopen("dico.txt", "r")) == NULL )
 		stop_prog("Error fopen() returned (NULL) in function `word_from_dico`\n");
 
 	nb_lgn = file_number_of_lines(f_dico);
@@ -133,9 +131,9 @@ static void		stop_prog(const char * str)
 static void 	welcome(void)
 {
 	puts("\n\nBienvenue dans le jeu du Pendu !\n\n"
-		   "Le but du jeu est de trouver un mot mystere avec un nombre d'essai limité ! "
+		   "Le but du jeu est de trouver un mot mystere avec un nombre d'essais limité !\n"
 		   "Le joueur doit pour cela rentrer des lettres, en faisant jouer son sens de la déduction "
-		   "et sa culture de la langue francaise. "
+		   "et sa culture de la langue francaise.\n"
 		   "Les lettres peuvent etre entrees en minuscule ou en majuscule, cela n'a pas d'importance.\n");
 
 	puts("Appuyez sur ENTREE pour continuer.");
@@ -223,7 +221,7 @@ static char 	get_letter(void)
 	char c = 0;
 
 	while ( isalpha(c) == 0 )
-	{
+	{	
 		printf("Entrez une lettre > ");
 		fflush(stdout);
 		c = getchar();
@@ -258,7 +256,7 @@ static bool		search_letter_in_word(const char letter, const char * secret_word, 
 {
 	bool good_letter = false;
 
-	for (int i = 0 ; secret_word[i] ; i++)
+	for (size_t i = 0 ; secret_word[i] ; i++)
 	{
 		if (secret_word[i] == letter)
 		{
@@ -276,24 +274,52 @@ static bool		search_letter_in_word(const char letter, const char * secret_word, 
 }
 
 
+static enum e_letter_status 	letters_already_played(char * letters_played, char letter)
+{
+	unsigned int i = 0;
+
+	for (i = 0 ; letters_played[i] ; i++)
+	{
+		if (letters_played[i] == letter)
+			return (ALREADY_PLAYED);
+	}
+
+	letters_played[i] = letter;
+
+	return (NEW_LETTER_PLAYED);
+}
+
+
 static bool		find_secret_word(const char * secret_word, char * hidden_word)
 {
 	char letter = 0;
-	int attempts = NB_ATTEMPTS;
+	unsigned int attempts = NB_ATTEMPTS;
 	size_t length = strlen(secret_word);
+	char letters_played[27] = {0};
 
-	puts("\n\nA vous maintenant de trouver le mot mystere !\nAppuyez sur ENTREE pour commencer.");
-	puts("- - - - - - - - - - - - - - - - - - - - - -");
+	puts("\n\nA vous maintenant de trouver le mot mystere !\n"
+		 "Entrez les lettres une par une, si vous entrez plusieurs caracteres, seul le premier sera pris en compte.\n"
+		 "Appuyez sur ENTREE pour commencer\n"
+		 "- - - - - - - - - - - - - - - - - - - - - -");
 	clear_stdin();
 
 	while ( strcmp(hidden_word, secret_word) != 0 && attempts > 0)
 	{
 		printf("Mot secret : %s (%zu lettres)\n", hidden_word, length);
-		printf("Il vous reste %d essais.\n", attempts);
+		printf("Il vous reste %u essais. Lettres deja jouees : ", attempts);
+		for (int i = 0 ; letters_played[i] ; i++)
+			printf("%c ", letters_played[i]);
+		putchar('\n');
+
 		letter = get_letter();
 
-		if ( search_letter_in_word(letter, secret_word, hidden_word) == false )
-			attempts--;
+		if ( letters_already_played(letters_played, letter) == ALREADY_PLAYED )
+			puts("Vous avez deja joue cette lettre.\n");
+		else
+		{
+			if ( search_letter_in_word(letter, secret_word, hidden_word) == false )
+				attempts--;
+		}
 	}
 
 	return ( (attempts > 0) ? WIN : LOOSE );
