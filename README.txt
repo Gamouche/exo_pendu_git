@@ -10,7 +10,7 @@ Le programme est compilable sur Windows, Mac et Linux.
 Si vous modifiez au moins l'un des trois fichiers (pendu.c, pendu.h, dico.txt) le comportement du programme peut en être modifié (voire ne plus fonctionner du tout).
 
 
-Comment compiler le programme ?
+Comment compiler le programme
 _______________________________
 	
 	- Il vous faut un compilateur pour langage C (gcc, clang, un IDE C ...), (ne compile pas en C++).
